@@ -63,20 +63,21 @@ except:
 
 
 # CASE5
-# 아래처럼 실행하면 40이 리턴됨
+# TensorBoard 를 활용한 그래프 출력
 try:
-    x = tf.constant(35, name='x')
-    print(x)
-    y = tf.Variable(x + 5, name='y')
+    data = np.random.randint(1000, size=10000)
+    x = tf.constant(data, name='x')
+    y = tf.Variable(x**2 + 5*x + 5, name='y')
 
     with tf.Session() as session:
+
         merged = tf.merge_all_summaries()
         writer = tf.train.SummaryWriter("/tmp/basic", session.graph)
         model = tf.initialize_all_variables()
         session.run(model)
-
-        writer.add_summary(session.run(y))
         print(session.run(y))
-        # tensorboard --logdir=/tmp/basic
+
+        # 실행 방법 :  tensorboard --logdir=/tmp/basic
+        # http://localhost:6006
 except:
     print("ERROR-5")
