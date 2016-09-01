@@ -60,58 +60,83 @@ def plot_clusters(all_samples, centroids, n_samples_per_cluster):
         plt.plot(centroid[0], centroid[1], markersize=30, marker="x", color='m', mew=5)
     plt.show()
 
-#
+# https://www.tensorflow.org/versions/r0.10/api_docs
+# 클러스터 중심좌표 3개를 랜덤으로 섞어서 다시 리턴
 def choose_random_centroids(samples, n_clusters):
-    # Step 0: Initialisation: Select `n_clusters` number of random points
 
-    # shape 함수 테스트
-    test = []
-    print("shape test: {0} ".format(tf.shape(test)))
-    print("shape test: {0} ".format(tf.shape(test)[0]))
-    test = [[], [], []]
-    print("shape test: {0} ".format(tf.shape(test)))
-    print("shape test: {0} ".format(tf.shape(test)[0]))
-    test = [[[], []], [[],[]]]
-    print("shape test: {0} ".format(tf.shape(test)))
-    print("shape test: {0} ".format(tf.shape(test)[0]))
-
-
-    print("shape : {0} ".format(tf.shape(samples)))
+    # tf.shape(input, name=None)
+    # 't' is [[[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]]]
+    # shape(t) == > [3]
     n_samples = tf.shape(samples)[0]
 
-    print("n_samples : {0} ".format(n_samples))
-    print("n_samples : {0} ".format(tf.shape(samples)[1]))
-    print("n_samples : {0} ".format(tf.shape(samples)[2]))
-    #print(type(n_samples))
-    #print(dir(n_samples))
-    print(n_samples.eval)
-    #print(n_samples.outputs)
+    # shape Test
+    print("tf.shape Test! ")
+    t = [[[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]]]
 
+    with tf.Session() as session:
+        tt = tf.shape(t)
+        rt = session.run(tt[0])
+        print("tf.shape Test Result: {0} , {1}".format(tt, rt))
+
+    # tf.random_shuffle
+    # [[1, 2],       [[5, 6],
+    # [3, 4],  ==>   [1, 2],
+    # [5, 6]]        [3, 4]]
     random_indices = tf.random_shuffle(tf.range(0, n_samples))
 
-    print(random_indices.eval )
     begin = [0, ]
     size = [n_clusters, ]
     size[0] = n_clusters
+    # tf.slice ( input, form array , to array )
     centroid_indices = tf.slice(random_indices, begin, size)
+
+    # gather mixed cluster again
     initial_centroids = tf.gather(samples, centroid_indices)
-    print(initial_centroids)
     return initial_centroids
 
-# Finds the nearest centroid for each sample
+#
 def assign_to_nearest(samples, centroids):
 
+    # expand_dims test
+    # 't2' is a tensor of shape [2, 3, 5]
+    # expand_dims ( data , location to add dim)
+    with tf.Session() as session:
+        t2 = [[2,3,5,6,7,8,9],[9,8,7,6,5,4,3,]]
+        print("expand_before shape : {0}".format(session.run(tf.shape(t2))))
+        print("expand_dims test : {0}, {1}".format(session.run(tf.shape(tf.expand_dims(t2, 0))),
+                                                   session.run(tf.expand_dims(t2, 0))))
+        print("expand_dims test : {0}, {1}".format(session.run(tf.shape(tf.expand_dims(t2, 1))),
+                                                   session.run(tf.expand_dims(t2, 1))))
+        print("expand_dims test : {0}, {1}".format(session.run(tf.shape(tf.expand_dims(t2, -1))),
+                                                   session.run(tf.expand_dims(t2, -1))))
 
-    # START from http://esciencegroup.com/2016/01/05/an-encounter-with-googles-tensorflow/
+
+    # 차원을 추가한다
     expanded_vectors = tf.expand_dims(samples, 0)
     expanded_centroids = tf.expand_dims(centroids, 1)
+
+    # (1) tf.reduce_sum
+    ## 'x' is [[1, 1, 1]
+    #         [1, 1, 1]]
+    #tf.reduce_sum(x) ==> 6
+    #tf.reduce_sum(x, 0) ==> [2, 2, 2]
+    #tf.reduce_sum(x, 1) ==> [3, 3]
+    #tf.reduce_sum(x, 1, keep_dims=True) ==> [[3], [3]]
+    #tf.reduce_sum(x, [0, 1]) ==> 6
+
+    # (2) tf.square(X) =  x^2
+
+    # 모든 점들과 위에서 구한 랜덤 중앙점간의 거리의 합을 구한다
     distances = tf.reduce_sum( tf.square(
                tf.sub(expanded_vectors, expanded_centroids)), 2)
+
+    # 가장 가까운 거리를 구한다
     mins = tf.argmin(distances, 0)
-    # END from http://esciencegroup.com/2016/01/05/an-encounter-with-googles-tensorflow/
+    #
     nearest_indices = mins
     return nearest_indices
 
+# 새롭게 구한 중앙점 데이터를 업데이트
 def update_centroids(samples, nearest_indices, n_clusters):
     # Updates the centroid to be the mean of all samples associated with it.
     nearest_indices = tf.to_int32(nearest_indices)
@@ -125,17 +150,29 @@ n_samples_per_cluster = 500
 seed = 700
 embiggen_factor = 70
 
-
+# 복수 그룹의 군집 데이터를 만든다 의
 data_centroids, samples = create_samples(n_clusters, n_samples_per_cluster, n_features, embiggen_factor, seed)
+# 랜덤으로 중앙점을 생성한다
 initial_centroids = choose_random_centroids(samples, n_clusters)
+# 랜덤한 중앙점이 가장 가까운 그룹을 찾는다
 nearest_indices = assign_to_nearest(samples, initial_centroids)
+#
 updated_centroids = update_centroids(samples, nearest_indices, n_clusters)
 
+# 데이터 확인
+with tf.Session() as session:
+    print("[step 1] cent : {0} , sample : {1}".format(session.run(data_centroids), session.run(data_centroids)))
+    print("[step 2] cent : {0} ".format(session.run(initial_centroids)))
+    print("[step 3] cent : {0} ".format(session.run(nearest_indices)))
+    print("[step 4] cent : {0} ".format(session.run(updated_centroids)))
+
+# 세션에서 연산을 수행한다
 model = tf.initialize_all_variables()
 with tf.Session() as session:
     sample_values = session.run(samples)
     updated_centroid_value = session.run(updated_centroids)
     print(updated_centroid_value)
 
-
+# 그래프를 출력한다
+# 맷랩은 슈퍼유저로 실행하면 애러난다
 plot_clusters(sample_values, updated_centroid_value, n_samples_per_cluster)
