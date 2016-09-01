@@ -32,16 +32,30 @@ def create_samples(n_clusters, n_samples_per_cluster, n_features, embiggen_facto
     centroids = tf.concat(0, centroids, name='centroids')
     return centroids, samples
 
+# all_samples 전체 샘플 배열( x, y 좌표로 구성) , 각 그룹의 중앙값 배열 , 클러스터의 수
 def plot_clusters(all_samples, centroids, n_samples_per_cluster):
     import matplotlib.pyplot as plt
-    # Plot out the different clusters
-    # Choose a different colour for each cluster
+
+    # 0 ~ 1 구간을 len(centroids) 센터의 수 만큼으로 균등하게 나눈 배열을 생성함
+    # linespace :[ 0.   0.5  1. ]
+    print("linespace :{0}".format(np.linspace(0,1,len(centroids))))
+
+    # 0 ~ 1 구간에 대응하는 색상 스팩트럼에서 대응하는 색상을 리턴
+    # colur:[[1.00000000e+00   3.03152674e-01   1.53391655e-01   1.00000000e+00]
+    #        [1.00000000e+00   1.22464680e-16   6.12323400e-17   1.00000000e+00]
+    print("colur :{0}".format(plt.cm.rainbow([0.9, 1, 2, 3])))
+
+    # 각 그룹의 색상을 다르게 해주기 위하여  RGB 색상 추출
     colour = plt.cm.rainbow(np.linspace(0,1,len(centroids)))
+
+
+    # 중앙 값 배열을 기준으로 중앙점과 각 그룹에 해당하는 점을 표시
     for i, centroid in enumerate(centroids):
-        # Grab just the samples fpr the given cluster and plot them out with a new colour
+        # 각 배열에 해당하는 0 ~ 500 , 500 ~ 1000 , 1000 ~ 1500 구간을 나누어 색상을 지정하고 출력한다
         samples = all_samples[i*n_samples_per_cluster:(i+1)*n_samples_per_cluster]
         plt.scatter(samples[:,0], samples[:,1], c=colour[i])
-        # Also plot centroid
+
+        # 중앙점을 표시한다
         plt.plot(centroid[0], centroid[1], markersize=35, marker="x", color='k', mew=10)
         plt.plot(centroid[0], centroid[1], markersize=30, marker="x", color='m', mew=5)
     plt.show()
@@ -49,18 +63,44 @@ def plot_clusters(all_samples, centroids, n_samples_per_cluster):
 #
 def choose_random_centroids(samples, n_clusters):
     # Step 0: Initialisation: Select `n_clusters` number of random points
+
+    # shape 함수 테스트
+    test = []
+    print("shape test: {0} ".format(tf.shape(test)))
+    print("shape test: {0} ".format(tf.shape(test)[0]))
+    test = [[], [], []]
+    print("shape test: {0} ".format(tf.shape(test)))
+    print("shape test: {0} ".format(tf.shape(test)[0]))
+    test = [[[], []], [[],[]]]
+    print("shape test: {0} ".format(tf.shape(test)))
+    print("shape test: {0} ".format(tf.shape(test)[0]))
+
+
+    print("shape : {0} ".format(tf.shape(samples)))
     n_samples = tf.shape(samples)[0]
+
+    print("n_samples : {0} ".format(n_samples))
+    print("n_samples : {0} ".format(tf.shape(samples)[1]))
+    print("n_samples : {0} ".format(tf.shape(samples)[2]))
+    #print(type(n_samples))
+    #print(dir(n_samples))
+    print(n_samples.eval)
+    #print(n_samples.outputs)
+
     random_indices = tf.random_shuffle(tf.range(0, n_samples))
+
+    print(random_indices.eval )
     begin = [0, ]
     size = [n_clusters, ]
     size[0] = n_clusters
     centroid_indices = tf.slice(random_indices, begin, size)
     initial_centroids = tf.gather(samples, centroid_indices)
+    print(initial_centroids)
     return initial_centroids
 
-
+# Finds the nearest centroid for each sample
 def assign_to_nearest(samples, centroids):
-    # Finds the nearest centroid for each sample
+
 
     # START from http://esciencegroup.com/2016/01/05/an-encounter-with-googles-tensorflow/
     expanded_vectors = tf.expand_dims(samples, 0)
@@ -97,8 +137,5 @@ with tf.Session() as session:
     updated_centroid_value = session.run(updated_centroids)
     print(updated_centroid_value)
 
-print(sample_values)
-print(updated_centroid_value)
-print(n_samples_per_cluster)
-#plot_clusters(sample_values, updated_centroid_value, n_samples_per_cluster)
 
+plot_clusters(sample_values, updated_centroid_value, n_samples_per_cluster)
