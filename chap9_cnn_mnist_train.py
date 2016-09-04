@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
+# Reference : niektemme/tensorflow-mnist-predict
 
-"""
-Reference : niektemme/tensorflow-mnist-predict
-
-"""
 
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data

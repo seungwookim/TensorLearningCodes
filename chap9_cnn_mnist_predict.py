@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Reference : niektemme/tensorflow-mnist-predict
-
+#
 
 # import modules
 import sys
