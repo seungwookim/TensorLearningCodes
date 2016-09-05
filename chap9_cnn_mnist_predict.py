@@ -2,19 +2,24 @@
 # Reference : niektemme/tensorflow-mnist-predict
 #
 
-# import modules
+
 import sys
 import tensorflow as tf
 from PIL import Image, ImageFilter
 
 
 def predictint(imvalue):
+
     """
-    This function returns the predicted integer.
-    The imput is the pixel values from the imageprepare() function.
+    훈련된 모델을 사용하여 하나의 단일 이미지를 받아서 예측한다
+    :param imvalue:
+    :return:
     """
 
-    # Define the model (same as when creating the model file)
+    """
+    훈련시와 동일한 모델을 다시 정의합니다.
+    자세한 설명은 훈력쪽 소크 코드에서 확인할 수 있습니다.
+    """
     x = tf.placeholder(tf.float32, [None, 784])
     W = tf.Variable(tf.zeros([784, 10]))
     b = tf.Variable(tf.zeros([10]))
@@ -64,58 +69,52 @@ def predictint(imvalue):
     saver = tf.train.Saver()
 
     """
-    Load the model2.ckpt file
-    file is stored in the same directory as this python script is started
-    Use the model to predict the integer. Integer is returend as list.
-    Based on the documentatoin at
-    https://www.tensorflow.org/versions/master/how_tos/variables/index.html
+    모델을 saver 를 사용하여 복구합니다.
+    sess.run(init_op)
+    saver.restore(sess, "model2.ckpt")
     """
     with tf.Session() as sess:
         sess.run(init_op)
         saver.restore(sess, "model2.ckpt")
-        # print ("Model restored.")
-
         prediction = tf.argmax(y_conv, 1)
         return prediction.eval(feed_dict={x: [imvalue], keep_prob: 1.0}, session=sess)
 
 
 def imageprepare(argv):
     """
-    This function returns the pixel values.
-    The imput is a png file location.
+    로컬에서 이미지를 받아서 Tensorflow 처리 가능한 형태로 변환하는 역할을 수행합니다.
     """
     im = Image.open(argv).convert('L')
     width = float(im.size[0])
     height = float(im.size[1])
-    newImage = Image.new('L', (28, 28), (255))  # creates white canvas of 28x28 pixels
+    newImage = Image.new('L', (28, 28), (255))  # 우리가 테스트할 네트워크는 28/28 이미지이다
 
-    if width > height:  # check which dimension is bigger
-        # Width is bigger. Width becomes 20 pixels.
+    # 입력된 28/28이 아닌 이미지를 28/28로 변환하기 위해 가로 세로 중 어느쪽이 큰지 확인
+    if width > height:
+        # 폭이 더 큰 경우 처리 로직
         nheight = int(round((20.0 / width * height), 0))  # resize height according to ratio width
-        #if (nheigth == 0):  # rare case but minimum is 1 pixel
-        #    nheigth = 1
-            # resize and sharpen
+
+        # 20/20 이미지로 변환하고
         img = im.resize((20, nheight), Image.ANTIALIAS).filter(ImageFilter.SHARPEN)
-        wtop = int(round(((28 - nheight) / 2), 0))  # caculate horizontal pozition
-        newImage.paste(img, (4, wtop))  # paste resized image on white canvas
+        wtop = int(round(((28 - nheight) / 2), 0))  #
+        newImage.paste(img, (4, wtop))  # 리사이즈된 이미지를 흰색 바탕의 캔버스에 붙여 넣는다
     else:
-        # Height is bigger. Heigth becomes 20 pixels.
-        nwidth = int(round((20.0 / height * width), 0))  # resize width according to ratio height
-        if (nwidth == 0):  # rare case but minimum is 1 pixel
+        # 높이가 더 큰경우에 처리 로직
+        nwidth = int(round((20.0 / height * width), 0))
+        if (nwidth == 0):
             nwidth = 1
             # resize and sharpen
         img = im.resize((nwidth, 20), Image.ANTIALIAS).filter(ImageFilter.SHARPEN)
-        wleft = int(round(((28 - nwidth) / 2), 0))  # caculate vertical pozition
-        newImage.paste(img, (wleft, 4))  # paste resized image on white canvas
+        wleft = int(round(((28 - nwidth) / 2), 0))
+        newImage.paste(img, (wleft, 4))
 
     # newImage.save("sample.png")
 
-    tv = list(newImage.getdata())  # get pixel values
+    tv = list(newImage.getdata())  # 픽셀 데이터로 변환
 
-    # normalize pixels to 0 and 1. 0 is pure white, 1 is pure black.
+    # 255의 RGB 0 흰색, 1 검은색의 이진수로 노멀라이제이션 작업을 수행
     tva = [(255 - x) * 1.0 / 255.0 for x in tv]
     return tva
-    # print(tva)
 
 
 def main():
