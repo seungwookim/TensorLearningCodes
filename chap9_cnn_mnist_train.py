@@ -147,7 +147,7 @@ saver = tf.train.Saver()
 sess.run(tf.initialize_all_variables())
 
 #50개씩, 20000번 반복학습
-for i in range(2000):
+for i in range(1000):
   batch = mnist.train.next_batch(50)
   # 10회 단위로 한번씩 모델 정합성 테스트
   if i%100 == 0:
@@ -164,5 +164,3 @@ print ("Model saved in file: ", save_path)
 #최종적으로 모델의 정합성을 체크한다
 print("test accuracy %g"%accuracy.eval(feed_dict={
     x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
-
-sess.close()

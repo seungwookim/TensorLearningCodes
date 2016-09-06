@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 import tensorflow as tf
+import json
 
 # truncated_normal
 # tf.truncated_normal(shape, mean=0.0, stddev=1.0, dtype=tf.float32, seed=None, name=None)
@@ -13,5 +15,14 @@ def test_truncated_normal():
         session.run(model)
         print(session.run(out))
 
+# Json - python 변환 테스트
+def json_test():
+    list = {"aaa": [[1, 2], [3, 4]] , "bbb" : [1]} # Note that the 3rd element is a tuple (3, 4)
+    js = json.dumps(list)  # '[1, 2, [3, 4]]'
+    print("jsoon-format:{0}".format(js))
+
+    py_list = json.loads(js)
+    print("python-format:{0}".format(py_list))
 
 test_truncated_normal()
+json_test()
