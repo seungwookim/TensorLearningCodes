@@ -61,6 +61,10 @@ def my_op_with_vars_none_scope2(a, b):
     print("none scope b : {0}".format(b.name))
     return tf.mul(a, b)
 
+def python_to_json():
+    return_data = {"status": "ok", "result": "on dev"}
+    print(json.dumps(return_data))
+
 def main(unused_argv):
 
   # Test CASE1
@@ -76,6 +80,9 @@ def main(unused_argv):
         print(session.run(my_op_with_vars_scope_b(my_op_with_vars_scope_b(i, 2), 3)))
         print(session.run(my_op_with_vars_none_scope1(my_op_with_vars_none_scope1(i, 2), 3)))
         print(session.run(my_op_with_vars_none_scope2(my_op_with_vars_none_scope2(i, 2), 3)))
+
+  # Test CASE4
+  python_to_json()
 
 if __name__ == '__main__':
   tf.app.run()
