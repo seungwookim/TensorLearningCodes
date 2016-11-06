@@ -58,6 +58,7 @@ def conv_model(X, y):
 classifier = learn.TensorFlowEstimator(
     model_fn=conv_model, n_classes=10, batch_size=100, steps=10,
     learning_rate=0.001)
+
 classifier.fit(mnist.train.images, mnist.train.labels)
 score = metrics.accuracy_score(
     mnist.test.labels, classifier.predict(mnist.test.images))
